@@ -11,8 +11,14 @@ from sqlalchemy.orm import Session
 from mlbsim_api.schemas import GameSummary
 from mlbsim_data.models import Game, GamePrediction, PredictionOutcome, Team, is_game_final
 
-# Preference order when a game has predictions from several models.
-PREFERRED_MODELS = ("ensemble_v1", "direct_v1", "elo_sp_v1", "elo_v1")
+# Preference order when a game has predictions from several models -- honest,
+# not aspirational: elo_sp_v1 is the model that has actually won every real
+# walk-forward/held-out comparison run so far (see docs/EVALUATION.md §7 and
+# scripts/backtest_pitcher_adjustment.py). gbm_v1/mlp_v1/ensemble_v1 are real,
+# trained, and graded on the scorecard, but none of them have beaten it yet --
+# so none of them go ahead of it here. Promote one only once it actually wins
+# a comparison; don't let "it's fancier" default it to the front.
+PREFERRED_MODELS = ("elo_sp_v1", "ensemble_v1", "gbm_v1", "direct_v1", "elo_v1")
 
 
 def predicted_winner(pred: GamePrediction) -> str:
