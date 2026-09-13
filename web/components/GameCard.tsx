@@ -1,11 +1,11 @@
 import Link from "next/link";
 import type { GameSummary } from "@/lib/types";
 import { clockTime, num, pct } from "@/lib/format";
-import { ProbBar } from "@/components/ui/primitives";
+import { ProbBar, stagger } from "@/components/ui/primitives";
 import { VerdictBadge } from "@/components/VerdictBadge";
 import { cn } from "@/lib/cn";
 
-export function GameCard({ g }: { g: GameSummary }) {
+export function GameCard({ g, index = 0 }: { g: GameSummary; index?: number }) {
   const home = g.home_abbr ?? String(g.home_team_id);
   const away = g.away_abbr ?? String(g.away_team_id);
   const hp = g.home_win_prob ?? null;
@@ -16,8 +16,9 @@ export function GameCard({ g }: { g: GameSummary }) {
   return (
     <Link
       href={`/games/${g.game_pk}`}
+      style={stagger(index)}
       className={cn(
-        "group block animate-fade-in rounded-2xl border bg-surface p-4 shadow-card transition hover:-translate-y-0.5 hover:border-accent/50",
+        "group stagger-in block rounded-2xl border bg-surface p-4 shadow-card transition-all duration-300 ease-premium hover:-translate-y-1 hover:border-accent/50 hover:shadow-card-hover",
         missed ? "border-danger/30" : "border-border",
       )}
     >
@@ -50,7 +51,7 @@ export function GameCard({ g }: { g: GameSummary }) {
       </div>
 
       {hp != null ? (
-        <div className={cn("mt-3", final && "opacity-40")}>
+        <div className={cn("mt-3 transition-opacity duration-500", final && "opacity-40")}>
           <ProbBar home={hp} away={1 - hp} />
         </div>
       ) : null}
@@ -63,7 +64,11 @@ export function GameCard({ g }: { g: GameSummary }) {
         ) : (
           <span />
         )}
-        {g.model_id ? <span className="font-mono">{g.model_id}</span> : null}
+        {g.model_id ? (
+          <span className="font-mono opacity-70 transition-opacity duration-300 group-hover:opacity-100">
+            {g.model_id}
+          </span>
+        ) : null}
       </div>
     </Link>
   );
@@ -91,13 +96,13 @@ function TeamRow({
       <span className="flex items-center gap-2">
         <span
           className={cn(
-            "h-2.5 w-2.5 rounded-full",
+            "h-2.5 w-2.5 rounded-full transition-transform duration-300 ease-premium",
             side === "home" ? "bg-home" : "bg-away",
           )}
         />
         <span
           className={cn(
-            "font-semibold",
+            "font-semibold transition-colors duration-300",
             final && !isWinner && "text-muted",
             side === "home" ? "text-home" : "text-away",
           )}
@@ -112,12 +117,14 @@ function TeamRow({
       </span>
       <span className="flex items-center gap-3 text-sm">
         {prob != null ? (
-          <span className={cn("text-muted", final && "opacity-60")}>{pct(prob)}</span>
+          <span className={cn("text-muted transition-opacity duration-300", final && "opacity-60")}>
+            {pct(prob)}
+          </span>
         ) : null}
         {score != null ? (
           <span
             className={cn(
-              "w-5 text-right font-bold",
+              "w-5 text-right font-bold transition-colors duration-300",
               isWinner ? "text-fg" : "text-muted",
             )}
           >

@@ -1,6 +1,6 @@
 import { apiGetOrNull } from "@/lib/api";
 import type { PlayoffsOut } from "@/lib/types";
-import { Card, CardTitle, Empty, PageHeader } from "@/components/ui/primitives";
+import { Card, CardTitle, Empty, PageHeader, stagger } from "@/components/ui/primitives";
 import { WSOddsBar } from "@/components/charts/WSOddsBar";
 import { Bracket } from "@/components/charts/Bracket";
 
@@ -23,11 +23,11 @@ export default async function PlayoffsPage() {
         <Empty>No season simulation has been run yet.</Empty>
       ) : (
         <>
-          <Card>
+          <Card style={stagger(0)}>
             <CardTitle>World Series probability</CardTitle>
             <WSOddsBar teams={data.teams} limit={14} />
           </Card>
-          <Card>
+          <Card style={stagger(1)}>
             <CardTitle>Projected bracket</CardTitle>
             <Bracket data={data} />
           </Card>

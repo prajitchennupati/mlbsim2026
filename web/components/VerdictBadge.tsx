@@ -25,7 +25,7 @@ export function VerdictBadge({
   awayAbbr: string;
   size?: "sm" | "lg";
 }) {
-  const cls = size === "lg" ? "px-3 py-1 text-sm" : "";
+  const cls = cn(size === "lg" ? "px-3 py-1 text-sm" : "", "animate-scale-in");
 
   if (v.is_final && (v.correct === true || v.correct === false)) {
     return v.correct ? (

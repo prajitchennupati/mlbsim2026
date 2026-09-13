@@ -48,16 +48,23 @@ export function AutoRefresh({
   return (
     <button
       onClick={refresh}
-      className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-2.5 py-1 text-xs text-muted transition hover:text-fg"
+      className="group inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-xs text-muted shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:text-fg hover:shadow-card-hover"
       title="Refresh now"
       data-tick={tick}
     >
-      <span
-        className={`h-1.5 w-1.5 rounded-full ${
-          pending ? "bg-accent animate-pulse-dot" : "bg-success"
-        }`}
-      />
-      {pending ? "Updating…" : `${label} · ${ago}`}
+      <span className="relative flex h-1.5 w-1.5">
+        {!pending ? (
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-50" />
+        ) : null}
+        <span
+          className={`relative inline-flex h-1.5 w-1.5 rounded-full transition-colors duration-300 ${
+            pending ? "bg-accent animate-pulse-dot" : "bg-success"
+          }`}
+        />
+      </span>
+      <span className="transition-transform duration-300 group-hover:translate-x-0.5">
+        {pending ? "Updating…" : `${label} · ${ago}`}
+      </span>
     </button>
   );
 }

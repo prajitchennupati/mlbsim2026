@@ -14,9 +14,11 @@ import {
   LiveDot,
   PageHeader,
   StatTile,
+  stagger,
 } from "@/components/ui/primitives";
 import { GameCard } from "@/components/GameCard";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { VerdictBadge } from "@/components/VerdictBadge";
 import { WSOddsBar } from "@/components/charts/WSOddsBar";
 
@@ -75,8 +77,8 @@ export async function LiveBoard() {
         </CardTitle>
         {ordered.length ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {ordered.map((g) => (
-              <GameCard key={g.game_pk} g={g} />
+            {ordered.map((g, i) => (
+              <GameCard key={g.game_pk} g={g} index={i} />
             ))}
           </div>
         ) : (
@@ -97,8 +99,8 @@ export async function LiveBoard() {
           </CardTitle>
           {graded.length ? (
             <ul className="divide-y divide-border text-sm">
-              {graded.map((r) => (
-                <GradedRow key={r.pred_id} r={r} />
+              {graded.map((r, i) => (
+                <GradedRow key={r.pred_id} r={r} index={i} />
               ))}
             </ul>
           ) : (
@@ -148,20 +150,28 @@ function Scorecard({ summary }: { summary: PredictionSummary | null }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       <StatTile
+        style={stagger(0)}
         label="Accuracy (all-time)"
-        value={pct(o.accuracy, 1)}
+        value={<AnimatedNumber value={o.accuracy} format={(n) => pct(n, 1)} />}
         hint={`${o.correct}/${o.n} games`}
         tone={o.accuracy != null && o.accuracy >= 0.5 ? "success" : "default"}
       />
       <StatTile
+        style={stagger(1)}
         label="Accuracy (last 7d)"
-        value={pct(w.accuracy, 1)}
+        value={<AnimatedNumber value={w.accuracy} format={(n) => pct(n, 1)} />}
         hint={`${w.correct}/${w.n} games`}
       />
-      <StatTile label="Brier" value={num(o.brier, 3)} hint="lower is better · 0.25 = coin flip" />
       <StatTile
+        style={stagger(2)}
+        label="Brier"
+        value={<AnimatedNumber value={o.brier} format={(n) => num(n, 3)} />}
+        hint="lower is better · 0.25 = coin flip"
+      />
+      <StatTile
+        style={stagger(3)}
         label="Log loss"
-        value={num(o.log_loss, 3)}
+        value={<AnimatedNumber value={o.log_loss} format={(n) => num(n, 3)} />}
         hint={`coin flip ${summary.coin_flip_log_loss.toFixed(3)}`}
         tone={beatsCoin === true ? "success" : beatsCoin === false ? "danger" : "default"}
       />
@@ -169,13 +179,19 @@ function Scorecard({ summary }: { summary: PredictionSummary | null }) {
   );
 }
 
-function GradedRow({ r }: { r: PredictionHistoryRow }) {
+function GradedRow({ r, index = 0 }: { r: PredictionHistoryRow; index?: number }) {
   const away = r.away_abbr ?? "AWY";
   const home = r.home_abbr ?? "HOM";
   return (
-    <li className="flex items-center justify-between gap-3 py-2">
+    <li
+      style={stagger(index)}
+      className="stagger-in flex items-center justify-between gap-3 py-2 transition-colors duration-200 hover:bg-surface-2/60"
+    >
       <div className="min-w-0">
-        <Link href={`/games/${r.game_pk}`} className="tabular block truncate font-medium hover:text-accent">
+        <Link
+          href={`/games/${r.game_pk}`}
+          className="tabular block truncate font-medium transition-colors duration-200 hover:text-accent"
+        >
           {away} {r.away_score ?? "–"} @ {home} {r.home_score ?? "–"}
         </Link>
         <div className="text-xs text-muted">

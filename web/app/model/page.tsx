@@ -1,6 +1,6 @@
 import { apiGetOrDefault, apiGetOrNull } from "@/lib/api";
 import type { EvalOut, ModelOut } from "@/lib/types";
-import { Card, CardTitle, PageHeader } from "@/components/ui/primitives";
+import { Card, CardTitle, PageHeader, stagger } from "@/components/ui/primitives";
 import { CalibrationPlot } from "@/components/charts/CalibrationPlot";
 
 export const revalidate = 900;
@@ -35,7 +35,7 @@ export default async function ModelPage() {
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card style={stagger(0)}>
           <CardTitle>Registered models</CardTitle>
           <table className="tabular w-full text-sm">
             <thead>
@@ -47,7 +47,10 @@ export default async function ModelPage() {
             </thead>
             <tbody>
               {models.map((m) => (
-                <tr key={m.model_id} className="border-t border-border">
+                <tr
+                  key={m.model_id}
+                  className="border-t border-border transition-colors duration-200 hover:bg-surface-2"
+                >
                   <td className="py-1.5">
                     <span className="font-medium">{m.name}</span>
                     <span className="ml-2 font-mono text-xs text-muted">{m.model_id}</span>
@@ -60,7 +63,7 @@ export default async function ModelPage() {
           </table>
         </Card>
 
-        <Card>
+        <Card style={stagger(1)}>
           <CardTitle>Calibration {winModel ? `· ${winModel.model_id}` : ""}</CardTitle>
           <CalibrationPlot bins={evalOut?.calibration ?? []} />
           <p className="mt-2 text-xs text-muted">

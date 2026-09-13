@@ -1,18 +1,32 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/cn";
+
+/** Inline style carrying the stagger index for `.stagger-in` — keeps callers
+ * from having to know the CSS custom-property name. */
+export function stagger(i: number): CSSProperties {
+  return { "--stagger-i": i } as CSSProperties;
+}
 
 export function Card({
   className,
   children,
+  interactive = false,
+  style,
 }: {
   className?: string;
   children: ReactNode;
+  /** Lifts + glows on hover — use for cards that are themselves a link/action. */
+  interactive?: boolean;
+  style?: CSSProperties;
 }) {
   return (
     <div
+      style={style}
       className={cn(
-        "rounded-2xl border border-border bg-surface p-5 shadow-card",
+        "stagger-in rounded-2xl border border-border bg-surface p-5 shadow-card transition-all duration-300 ease-premium",
+        interactive &&
+          "cursor-pointer hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-card-hover",
         className,
       )}
     >
@@ -48,10 +62,12 @@ export function PageHeader({
   right?: ReactNode;
 }) {
   return (
-    <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-7 flex animate-fade-in-up flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-[1.7rem] font-bold leading-tight tracking-tight">{title}</h1>
-        {subtitle ? <p className="mt-1 text-sm text-muted">{subtitle}</p> : null}
+        <h1 className="bg-gradient-to-br from-fg to-fg/70 bg-clip-text text-[1.75rem] font-bold leading-tight tracking-tight text-transparent">
+          {title}
+        </h1>
+        {subtitle ? <p className="mt-1.5 text-sm text-muted">{subtitle}</p> : null}
       </div>
       {right}
     </div>
@@ -63,11 +79,13 @@ export function StatTile({
   value,
   hint,
   tone = "default",
+  style,
 }: {
   label: string;
   value: ReactNode;
   hint?: ReactNode;
   tone?: "default" | "success" | "danger" | "accent";
+  style?: CSSProperties;
 }) {
   const tones = {
     default: "",
@@ -76,7 +94,10 @@ export function StatTile({
     accent: "text-accent",
   } as const;
   return (
-    <div className="rounded-xl border border-border bg-surface px-4 py-3 shadow-card">
+    <div
+      style={style}
+      className="group stagger-in rounded-xl border border-border bg-surface px-4 py-3 shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:shadow-card-hover"
+    >
       <div className="text-[11px] font-medium uppercase tracking-wider text-muted">
         {label}
       </div>
@@ -107,7 +128,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold transition-colors duration-200",
         tones[tone],
         className,
       )}
@@ -119,7 +140,7 @@ export function Badge({
 
 export function Empty({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-border bg-surface/50 p-10 text-center text-sm text-muted">
+    <div className="animate-fade-in rounded-2xl border border-dashed border-border bg-surface/50 p-10 text-center text-sm text-muted">
       {children}
     </div>
   );
@@ -128,7 +149,10 @@ export function Empty({ children }: { children: ReactNode }) {
 export function LiveDot({ label = "Live" }: { label?: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-danger">
-      <span className="h-2 w-2 rounded-full bg-danger animate-pulse-dot" />
+      <span className="relative flex h-2 w-2">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-danger opacity-60" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-danger" />
+      </span>
       {label}
     </span>
   );
@@ -146,16 +170,16 @@ export function Segmented({
   current: string;
 }) {
   return (
-    <div className="inline-flex rounded-lg border border-border bg-surface p-0.5 text-sm">
+    <div className="inline-flex rounded-lg border border-border bg-surface p-0.5 text-sm shadow-card">
       {items.map((it) => (
         <Link
           key={it.href}
           href={it.href}
           className={cn(
-            "rounded-md px-3 py-1 font-medium transition",
+            "rounded-md px-3 py-1 font-medium transition-all duration-300 ease-premium",
             it.href === current
-              ? "bg-accent text-white"
-              : "text-muted hover:text-fg",
+              ? "bg-accent text-white shadow-sm"
+              : "text-muted hover:bg-surface-2 hover:text-fg",
           )}
         >
           {it.label}
@@ -167,7 +191,8 @@ export function Segmented({
 
 /**
  * Two-colour probability bar with the favoured side's share labelled. `home` is
- * the home win probability in [0, 1].
+ * the home win probability in [0, 1]. The fill transitions smoothly whenever
+ * `home` changes (a live re-fetch nudging the number), not just on mount.
  */
 export function ProbBar({
   home,
@@ -181,8 +206,14 @@ export function ProbBar({
   const h = Math.round(home * 100);
   return (
     <div className="relative flex h-2.5 w-full overflow-hidden rounded-full bg-border">
-      <div className="bg-away/80" style={{ width: `${100 - h}%` }} />
-      <div className="bg-home/80" style={{ width: `${h}%` }} />
+      <div
+        className="bg-away/80 transition-[width] duration-700 ease-premium"
+        style={{ width: `${100 - h}%` }}
+      />
+      <div
+        className="bg-home/80 transition-[width] duration-700 ease-premium"
+        style={{ width: `${h}%` }}
+      />
       {showTick ? (
         <span className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-surface/70" />
       ) : null}

@@ -40,6 +40,16 @@ export function timeAgo(iso: string | null | undefined): string {
   return `${Math.round(h / 24)}d ago`;
 }
 
+// Mirrors mlbsim_data.models.FINAL_STATUSES on the backend — a non-null score
+// is not a reliable "is this game over" signal (the Stats API reports 0-0 for
+// games that haven't started), so anywhere the API doesn't already hand back
+// a computed `is_final`, check `status` against this instead.
+const FINAL_STATUSES = new Set(["Final", "Game Over", "Completed Early"]);
+
+export function isFinalStatus(status: string | null | undefined): boolean {
+  return !!status && FINAL_STATUSES.has(status);
+}
+
 /** Bucket a {"k": p} distribution into an array of {value, p} for charts. */
 export function distToArray(
   dist: Record<string, number> | null | undefined,

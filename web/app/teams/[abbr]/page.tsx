@@ -40,8 +40,8 @@ export default async function TeamPage({ params }: { params: Promise<{ abbr: str
         <section>
           <CardTitle>Upcoming</CardTitle>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {upcoming.map((g) => (
-              <GameCard key={g.game_pk} g={g} />
+            {upcoming.map((g, i) => (
+              <GameCard key={g.game_pk} g={g} index={i} />
             ))}
           </div>
         </section>

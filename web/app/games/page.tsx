@@ -51,13 +51,13 @@ export default async function GamesPage({
           <div className="tabular flex items-center gap-2 text-sm">
             <Link
               href={`/games?date=${prev}${teamQ}`}
-              className="rounded-md border border-border bg-surface px-2 py-1 hover:border-accent/50"
+              className="rounded-md border border-border bg-surface px-2 py-1 shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-accent/50"
             >
               ← {prev.slice(5)}
             </Link>
             <Link
               href={`/games?date=${next}${teamQ}`}
-              className="rounded-md border border-border bg-surface px-2 py-1 hover:border-accent/50"
+              className="rounded-md border border-border bg-surface px-2 py-1 shadow-card transition-all duration-300 ease-premium hover:-translate-y-0.5 hover:border-accent/50"
             >
               {next.slice(5)} →
             </Link>
@@ -79,8 +79,8 @@ export default async function GamesPage({
 
       {games.length ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {games.map((g) => (
-            <GameCard key={g.game_pk} g={g} />
+          {games.map((g, i) => (
+            <GameCard key={g.game_pk} g={g} index={i} />
           ))}
         </div>
       ) : (

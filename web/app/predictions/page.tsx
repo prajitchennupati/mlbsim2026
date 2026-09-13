@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { apiGetOrDefault, apiGetOrNull } from "@/lib/api";
 import type { PredictionHistoryRow, PredictionSummary } from "@/lib/types";
-import { num, pct, shortDate } from "@/lib/format";
-import { Card, CardTitle, Empty, PageHeader, StatTile, Segmented } from "@/components/ui/primitives";
+import { isFinalStatus, num, pct, shortDate } from "@/lib/format";
+import {
+  Card,
+  CardTitle,
+  Empty,
+  PageHeader,
+  StatTile,
+  Segmented,
+  stagger,
+} from "@/components/ui/primitives";
 import { VerdictBadge } from "@/components/VerdictBadge";
 
 export const revalidate = 120;
@@ -52,6 +60,7 @@ export default async function PredictionsPage({
       {summary ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile
+            style={stagger(0)}
             label="Accuracy"
             value={pct(summary.overall.accuracy, 1)}
             hint={`${summary.overall.correct}/${summary.overall.n}`}
@@ -61,9 +70,20 @@ export default async function PredictionsPage({
                 : "default"
             }
           />
-          <StatTile label="Last 7 days" value={pct(summary.last_7d.accuracy, 1)} hint={`${summary.last_7d.n} games`} />
-          <StatTile label="Brier" value={num(summary.overall.brier, 3)} hint="vs 0.25 coin flip" />
           <StatTile
+            style={stagger(1)}
+            label="Last 7 days"
+            value={pct(summary.last_7d.accuracy, 1)}
+            hint={`${summary.last_7d.n} games`}
+          />
+          <StatTile
+            style={stagger(2)}
+            label="Brier"
+            value={num(summary.overall.brier, 3)}
+            hint="vs 0.25 coin flip"
+          />
+          <StatTile
+            style={stagger(3)}
             label="Log loss"
             value={num(summary.overall.log_loss, 3)}
             hint={`vs ${summary.coin_flip_log_loss.toFixed(3)}`}
@@ -95,9 +115,15 @@ export default async function PredictionsPage({
               </thead>
               <tbody>
                 {summary.by_model.map((b) => (
-                  <tr key={b.label} className="border-t border-border">
+                  <tr
+                    key={b.label}
+                    className="border-t border-border transition-colors duration-200 hover:bg-surface-2"
+                  >
                     <td className="py-2 font-mono">
-                      <Link href={`?model=${b.label}`} className="hover:text-accent">
+                      <Link
+                        href={`?model=${b.label}`}
+                        className="transition-colors duration-200 hover:text-accent"
+                      >
                         {b.label}
                       </Link>
                     </td>
@@ -156,11 +182,18 @@ export default async function PredictionsPage({
                     r.predicted_winner === "home"
                       ? r.home_win_prob
                       : 1 - r.home_win_prob;
+                  const final = isFinalStatus(r.status);
                   return (
-                    <tr key={r.pred_id} className="border-t border-border hover:bg-surface-2">
+                    <tr
+                      key={r.pred_id}
+                      className="border-t border-border transition-colors duration-200 hover:bg-surface-2"
+                    >
                       <td className="px-3 py-2 text-muted">{shortDate(r.game_date)}</td>
                       <td className="px-3 py-2">
-                        <Link href={`/games/${r.game_pk}`} className="hover:text-accent">
+                        <Link
+                          href={`/games/${r.game_pk}`}
+                          className="transition-colors duration-200 hover:text-accent"
+                        >
                           {away} @ {home}
                         </Link>
                       </td>
@@ -172,14 +205,12 @@ export default async function PredictionsPage({
                           : "—"}
                       </td>
                       <td className="px-3 py-2 text-right">
-                        {r.home_score != null
-                          ? `${r.away_score}–${r.home_score}`
-                          : "—"}
+                        {final ? `${r.away_score}–${r.home_score}` : "—"}
                       </td>
                       <td className="px-3 py-2">
                         <VerdictBadge
                           v={{
-                            is_final: r.home_score != null,
+                            is_final: final,
                             correct: r.correct,
                             predicted_winner: r.predicted_winner,
                             home_win_prob: r.home_win_prob,

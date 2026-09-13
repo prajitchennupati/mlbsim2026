@@ -8,7 +8,7 @@ import type {
   SimulationOut,
 } from "@/lib/types";
 import { clockTime, num, pct, shortDate } from "@/lib/format";
-import { Card, CardTitle, ProbBar, StatTile } from "@/components/ui/primitives";
+import { Card, CardTitle, ProbBar, StatTile, stagger } from "@/components/ui/primitives";
 import { VerdictBadge } from "@/components/VerdictBadge";
 import { FactorList } from "@/components/FactorList";
 import { RunDistBar } from "@/components/charts/RunDistBar";
@@ -44,7 +44,7 @@ export default async function GamePage({
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="animate-fade-in-up">
         <div className="flex items-center gap-2 text-sm text-muted">
           <span>
             {shortDate(game.game_date)} ·{" "}
@@ -54,12 +54,22 @@ export default async function GamePage({
         </div>
         <div className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1">
           <h1 className="flex items-baseline gap-3 text-3xl font-bold tracking-tight">
-            <span className={cn("text-away", final && !homeWon ? "" : final && "text-muted")}>
+            <span
+              className={cn(
+                "text-away transition-colors duration-500",
+                final && !homeWon ? "" : final && "text-muted",
+              )}
+            >
               {away}
               {final ? <span className="ml-2">{game.away_score}</span> : null}
             </span>
             <span className="text-muted">@</span>
-            <span className={cn("text-home", final && homeWon ? "" : final && "text-muted")}>
+            <span
+              className={cn(
+                "text-home transition-colors duration-500",
+                final && homeWon ? "" : final && "text-muted",
+              )}
+            >
               {home}
               {final ? <span className="ml-2">{game.home_score}</span> : null}
             </span>
@@ -72,7 +82,7 @@ export default async function GamePage({
         <ResultBanner game={game} home={home} away={away} />
       ) : null}
 
-      <Card>
+      <Card style={stagger(0)}>
         <div className="flex items-center justify-between text-sm font-medium">
           <span className="text-away">
             {away} {pct(1 - hp)}
@@ -105,7 +115,7 @@ export default async function GamePage({
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card style={stagger(1)}>
           <CardTitle>Why this prediction</CardTitle>
           <FactorList
             factors={game.factors?.top_factors ?? explain?.top_factors ?? []}
@@ -113,18 +123,18 @@ export default async function GamePage({
             awayAbbr={away}
           />
         </Card>
-        <Card>
+        <Card style={stagger(2)}>
           <CardTitle>Most likely final scores</CardTitle>
           <ScoreHeatmap scores={game.most_likely_scores} homeAbbr={home} awayAbbr={away} />
         </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card style={stagger(1)}>
           <CardTitle>{away} run distribution</CardTitle>
           <RunDistBar dist={game.away_score_dist} label={`${away} runs`} />
         </Card>
-        <Card>
+        <Card style={stagger(2)}>
           <CardTitle>{home} run distribution</CardTitle>
           <RunDistBar dist={game.home_score_dist} label={`${home} runs`} />
         </Card>
@@ -144,11 +154,11 @@ export default async function GamePage({
 
       {players && (players.batters.length || players.pitchers.length) ? (
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card style={stagger(1)}>
             <CardTitle>Batter projections</CardTitle>
             <BatterTable rows={players.batters} />
           </Card>
-          <Card>
+          <Card style={stagger(2)}>
             <CardTitle>Starter projections</CardTitle>
             <PitcherTable rows={players.pitchers} />
           </Card>
@@ -184,7 +194,7 @@ function ResultBanner({
   return (
     <div
       className={cn(
-        "rounded-2xl border p-4 text-sm shadow-card",
+        "animate-scale-in rounded-2xl border p-4 text-sm shadow-card",
         ok ? "border-success/30 bg-success/10" : "border-danger/30 bg-danger/10",
       )}
     >
@@ -217,7 +227,7 @@ function BatterTable({ rows }: { rows: GamePlayers["batters"] }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.player_id} className="border-t border-border">
+            <tr key={r.player_id} className="border-t border-border transition-colors duration-200 hover:bg-surface-2">
               <td className="py-1.5">#{r.player_id}</td>
               <td className="px-2 py-1.5 text-right">{num(r.proj.pa, 1)}</td>
               <td className="px-2 py-1.5 text-right">{num(r.proj.h, 2)}</td>
@@ -248,7 +258,7 @@ function PitcherTable({ rows }: { rows: GamePlayers["pitchers"] }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.player_id} className="border-t border-border">
+            <tr key={r.player_id} className="border-t border-border transition-colors duration-200 hover:bg-surface-2">
               <td className="py-1.5">#{r.player_id}</td>
               <td className="px-2 py-1.5 text-right">{num(r.proj.mean_ip, 1)}</td>
               <td className="px-2 py-1.5 text-right">{num(r.proj.mean_k, 1)}</td>
