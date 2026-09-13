@@ -16,7 +16,7 @@ from mlbsim_data.models import (
     ModelEvalRun,
     ModelVersion,
 )
-from mlbsim_models.pipelines import build_elo, evaluate_model
+from mlbsim_models.pipelines import build_elo, evaluate_model, predict_elo_date
 
 pytestmark = pytest.mark.integration
 
@@ -137,3 +137,60 @@ def test_evaluate_model_beats_coin_flip(synthetic_games):
 def test_evaluate_model_without_predictions_raises(synthetic_games):
     with pytest.raises(LookupError):
         evaluate_model("does_not_exist", season=2024)
+
+
+def test_predict_elo_date_scores_unplayed_games(synthetic_games):
+    build_elo()  # establishes ratings from the synthetic 2023/2024 games
+
+    upcoming = dt.date(2025, 4, 1)
+    with session_scope() as s:
+        s.execute(
+            Game.__table__.insert(),
+            [
+                {
+                    "game_pk": 999001,
+                    "season": 2025,
+                    "game_date": upcoming,
+                    "game_type": "R",
+                    "status": "Scheduled",
+                    "home_team_id": 1,  # strongest synthetic team
+                    "away_team_id": 4,  # weakest synthetic team
+                    "home_score": None,
+                    "away_score": None,
+                    "dh_game_num": 1,
+                    "is_doubleheader": False,
+                    "scheduled_innings": 9,
+                }
+            ],
+        )
+
+    summary = predict_elo_date(upcoming.isoformat())
+    assert summary.games_processed == 1
+    assert summary.prediction_rows == 1
+
+    with session_scope() as s:
+        pred = s.scalar(
+            select(GamePrediction).where(
+                GamePrediction.game_pk == 999001, GamePrediction.model_id == "elo_v1"
+            )
+        )
+        assert pred is not None
+        assert float(pred.home_win_prob) > 0.5  # team 1 rated above team 4
+
+    # idempotent — replaces rather than duplicating the game's elo_v1 row
+    predict_elo_date(upcoming.isoformat())
+    with session_scope() as s:
+        n = s.scalar(
+            select(func.count())
+            .select_from(GamePrediction)
+            .where(GamePrediction.game_pk == 999001, GamePrediction.model_id == "elo_v1")
+        )
+        assert n == 1
+
+
+def test_predict_elo_date_skips_already_finished_games(synthetic_games):
+    build_elo()
+    # every synthetic game already carries a final score -> nothing left to predict
+    summary = predict_elo_date("2023-04-01", "2024-12-31")
+    assert summary.games_processed == 0
+    assert summary.prediction_rows == 0

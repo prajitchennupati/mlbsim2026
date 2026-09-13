@@ -1,6 +1,6 @@
 """Model pipelines: read the warehouse, run a model, write the serving schema."""
 
-from mlbsim_models.pipelines.elo import build_elo
+from mlbsim_models.pipelines.elo import build_elo, predict_elo_date
 from mlbsim_models.pipelines.ensemble import predict_ensemble_date, train_ensemble
 from mlbsim_models.pipelines.evaluate import evaluate_model
 from mlbsim_models.pipelines.explain import explain_game
@@ -21,6 +21,7 @@ __all__ = [
     "live_win_prob_for_game",
     "marcel_for_player",
     "predict_date",
+    "predict_elo_date",
     "predict_ensemble_date",
     "predict_gbm_date",
     "predict_players_for_game",

@@ -11,6 +11,7 @@ from sqlalchemy import insert, select
 
 from mlbsim_core import get_logger, session_scope
 from mlbsim_data.models import (
+    FINAL_STATUSES,
     CalibrationBin,
     Game,
     GamePrediction,
@@ -44,7 +45,9 @@ def resolve_outcomes(*, since: str | None = None, model_id: str | None = None) -
         .outerjoin(PredictionOutcome, PredictionOutcome.pred_id == GamePrediction.pred_id)
         .where(
             GamePrediction.is_live.is_(False),
+            Game.status.in_(FINAL_STATUSES),
             Game.home_score.is_not(None),
+            Game.away_score.is_not(None),
             PredictionOutcome.pred_id.is_(None),  # not yet resolved
         )
     )

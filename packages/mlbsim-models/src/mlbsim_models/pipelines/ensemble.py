@@ -11,7 +11,7 @@ from sqlalchemy import delete, func, insert, select
 
 from mlbsim_core import get_logger, get_settings, session_scope
 from mlbsim_data.loaders.upsert import upsert
-from mlbsim_data.models import Game, GamePrediction, ModelVersion
+from mlbsim_data.models import FINAL_STATUSES, Game, GamePrediction, ModelVersion
 from mlbsim_models.ensemble import StackedWinModel, fit_calibrator, load_calibrator
 from mlbsim_models.evaluate.metrics import classification_report, expected_calibration_error
 
@@ -72,7 +72,9 @@ def _base_prob_rows(
     )
     if before:
         stmt = stmt.where(
-            Game.game_date < dt.date.fromisoformat(before), Game.home_score.is_not(None)
+            Game.game_date < dt.date.fromisoformat(before),
+            Game.status.in_(FINAL_STATUSES),
+            Game.home_score.is_not(None),
         )
     if on_date:
         stmt = stmt.where(Game.game_date == dt.date.fromisoformat(on_date))

@@ -57,8 +57,11 @@ def run_daily(
     run.step("season_stats", lambda: _season_stats(season))
     run.step("features", lambda: _features(season))
 
-    # 3. Ratings + (optional) model training.
+    # 3. Ratings + (optional) model training. build_elo only scores games that
+    #    already have a final score, so the upcoming slate needs its own pass —
+    #    elo_v1 is otherwise silent on any game that hasn't been played yet.
     run.step("elo", lambda: _elo(season))
+    run.step("elo_predict_slate", lambda: _elo_predict(slate))
     if do_train:
         run.step("train_direct", lambda: _train_direct(slate))
         run.step("train_gbm", lambda: _train_gbm(slate))
@@ -135,6 +138,12 @@ def _elo(season: int) -> Any:
     from mlbsim_models.pipelines import build_elo
 
     return build_elo(seasons=[season])
+
+
+def _elo_predict(slate: str) -> Any:
+    from mlbsim_models.pipelines import predict_elo_date
+
+    return predict_elo_date(slate)
 
 
 def _train_direct(through: str) -> Any:

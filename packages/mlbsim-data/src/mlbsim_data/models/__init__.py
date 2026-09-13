@@ -11,7 +11,15 @@ Scope by milestone (see ``docs/DATABASE.md``):
 
 from mlbsim_data.models.dims import Park, Player, Season, Team
 from mlbsim_data.models.features import FeatureSet, GameFeature
-from mlbsim_data.models.games import Game, GameProbable, GameWeather, Lineup
+from mlbsim_data.models.games import (
+    FINAL_STATUSES,
+    VOID_STATUSES,
+    Game,
+    GameProbable,
+    GameWeather,
+    Lineup,
+    is_game_final,
+)
 from mlbsim_data.models.misc import EloRating, Transaction
 from mlbsim_data.models.pbp import BattedBall, Pitch, PlateAppearance
 from mlbsim_data.models.serving import (
@@ -36,6 +44,8 @@ from mlbsim_data.models.stats import (
 )
 
 __all__ = [
+    "FINAL_STATUSES",
+    "VOID_STATUSES",
     "BattedBall",
     "BattingGameLog",
     "CalibrationBin",
@@ -67,4 +77,5 @@ __all__ = [
     "TeamGameLog",
     "TeamSeasonStat",
     "Transaction",
+    "is_game_final",
 ]

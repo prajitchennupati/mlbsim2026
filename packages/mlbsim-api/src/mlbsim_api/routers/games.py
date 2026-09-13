@@ -30,6 +30,7 @@ from mlbsim_data.models import (
     GameSimResultRow,
     PlayerPrediction,
     SimulationRun,
+    is_game_final,
 )
 
 router = APIRouter(prefix="/games", tags=["games"])
@@ -70,7 +71,7 @@ def list_games(
                 game_date=g.game_date,
                 start_time_utc=g.scheduled_start_utc,
                 status=g.status,
-                is_final=g.home_score is not None and g.away_score is not None,
+                is_final=is_game_final(g.status),
                 home_team_id=g.home_team_id,
                 away_team_id=g.away_team_id,
                 home_abbr=abbr.get(g.home_team_id),
@@ -106,7 +107,7 @@ def game_detail(game_pk: int, s: Session = Depends(get_session)) -> GameDetail:
         game_date=g.game_date,
         start_time_utc=g.scheduled_start_utc,
         status=g.status,
-        is_final=g.home_score is not None and g.away_score is not None,
+        is_final=is_game_final(g.status),
         home_team_id=g.home_team_id,
         away_team_id=g.away_team_id,
         home_abbr=abbr.get(g.home_team_id),

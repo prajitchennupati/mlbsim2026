@@ -12,6 +12,21 @@ from mlbsim_data.models._types import ingested_ts, ts, ts_opt
 
 _SCHEMA = "warehouse"
 
+# ``Game.status`` values (the Stats API's ``status.detailedState``) that mean the
+# game actually has a final result. A non-null score is *not* a reliable signal
+# on its own — the schedule endpoint reports 0-0 for plenty of games that
+# haven't started yet, not a missing/null score.
+FINAL_STATUSES: frozenset[str] = frozenset({"Final", "Game Over", "Completed Early"})
+
+# Statuses meaning no game will be played at this game_pk at all — neither a
+# result to grade nor a pre-game matchup worth predicting.
+VOID_STATUSES: frozenset[str] = frozenset({"Postponed", "Cancelled", "Suspended"})
+
+
+def is_game_final(status: str | None) -> bool:
+    """Whether ``status`` means the game has a real final result."""
+    return status in FINAL_STATUSES
+
 
 class Game(Base):
     __tablename__ = "games"

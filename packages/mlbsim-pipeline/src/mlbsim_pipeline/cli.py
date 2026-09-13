@@ -206,6 +206,18 @@ def elo_build(
     )
 
 
+@elo_app.command("predict")
+def elo_predict(
+    start: str = typer.Argument(..., help="Game date YYYY-MM-DD"),
+    end: str | None = typer.Argument(None, help="End date YYYY-MM-DD (default: start)"),
+) -> None:
+    """Pre-game elo_v1 predictions for not-yet-played games in [start, end]."""
+    from mlbsim_models.pipelines import predict_elo_date
+
+    s = predict_elo_date(start, end)
+    typer.echo(f"elo_v1: {s.prediction_rows} predictions for {s.games_processed} games")
+
+
 @features_app.command("build")
 def features_build(
     seasons: str | None = typer.Option(None, "--seasons", help="Comma-separated, e.g. 2022,2023."),
