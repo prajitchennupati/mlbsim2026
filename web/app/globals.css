@@ -143,3 +143,9 @@ body {
   from { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
   to { transform: translateY(110vh) rotate(720deg); opacity: 0.9; }
 }
+@keyframes egg-logo-pop {
+  0% { transform: scale(1) rotate(0deg); }
+  30% { transform: scale(1.5) rotate(-20deg); }
+  60% { transform: scale(1.25) rotate(380deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}

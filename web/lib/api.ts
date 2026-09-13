@@ -19,6 +19,14 @@ interface Opts {
   /** ISR revalidation window in seconds (default 5 min). Use 0 for no-store. */
   revalidate?: number;
   tags?: string[];
+  /**
+   * Fail the request after this long instead of hanging (default 45s — the
+   * free-tier Render API can take 30-50s to wake from a cold sleep, and a
+   * fetch with no bound at all risks the whole Vercel function getting
+   * killed by the platform instead of failing into apiGetOrNull/Default's
+   * catch, which is what shows the generic error boundary).
+   */
+  timeoutMs?: number;
 }
 
 export async function apiGet<T>(path: string, opts: Opts = {}): Promise<T> {
@@ -30,6 +38,7 @@ export async function apiGet<T>(path: string, opts: Opts = {}): Promise<T> {
       : { next: { revalidate, tags: opts.tags } };
   const res = await fetch(url, {
     headers: { accept: "application/json" },
+    signal: AbortSignal.timeout(opts.timeoutMs ?? 45_000),
     ...init,
   });
   if (!res.ok) {
