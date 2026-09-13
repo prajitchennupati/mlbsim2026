@@ -55,7 +55,7 @@ export function WSOddsBar({ teams, limit = 12 }: { teams: TeamSummary[]; limit?:
           <LabelList
             dataKey="p"
             position="right"
-            formatter={(v) => `${Number(v).toFixed(1)}%`}
+            formatter={(v: number | string) => `${Number(v).toFixed(1)}%`}
             style={{ fill: "rgb(var(--muted))", fontSize: 11 }}
           />
         </Bar>
