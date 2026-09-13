@@ -1,6 +1,7 @@
 """Model pipelines: read the warehouse, run a model, write the serving schema."""
 
 from mlbsim_models.pipelines.elo import build_elo, predict_elo_date
+from mlbsim_models.pipelines.elo_sp import backfill_elo_sp, predict_elo_sp_date
 from mlbsim_models.pipelines.ensemble import predict_ensemble_date, train_ensemble
 from mlbsim_models.pipelines.evaluate import evaluate_model
 from mlbsim_models.pipelines.explain import explain_game
@@ -14,6 +15,7 @@ from mlbsim_models.pipelines.season import build_season_setup, simulate_season_f
 from mlbsim_models.pipelines.train import train_direct_models
 
 __all__ = [
+    "backfill_elo_sp",
     "build_elo",
     "build_season_setup",
     "evaluate_model",
@@ -22,6 +24,7 @@ __all__ = [
     "marcel_for_player",
     "predict_date",
     "predict_elo_date",
+    "predict_elo_sp_date",
     "predict_ensemble_date",
     "predict_gbm_date",
     "predict_players_for_game",

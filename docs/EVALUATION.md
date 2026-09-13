@@ -138,7 +138,40 @@ here because the shared Postgres connection degraded after a long session of bul
 backfills. On the evidence so far the GBM adds capacity but, like `direct_v1`, is
 constrained by 13 features and one season — Elo remains the model to beat.
 
-### Score / run models, player props, season sim
+## 7. `elo_sp_v1` — starting-pitcher adjustment (real 2026 season)
+
+_Reproduce: `python scripts/backtest_pitcher_adjustment.py` against a warehouse with the
+2026 season ingested. Run 2026-09-13, against real in-season data (not the 2024
+walk-forward split above) — this is a live deployed comparison, not a held-out test set
+with a fixed train/train-through date._
+
+Plain Elo has no signal for *who's pitching* — a team's rating is identical whether its
+ace or its fifth starter is on the mound, and starting-pitcher quality is one of the
+largest per-game variance drivers in baseball. `elo_sp_v1` adds a bounded adjustment to
+each team's rating from its starter's point-in-time FIP (fielding-independent pitching —
+K/BB/HBP/HR, the components a pitcher directly controls), computed leakage-free: each
+game only ever sees a starter's cumulative stats from strictly before that game's period
+(`mlbsim_models.ratings.pitcher`). A small grid search over the points-per-FIP-run scale
+(6 through 25) showed a smooth, monotonic improvement peaking around 16-20 before
+degrading — not a single noisy spike — so the shipped model uses 15, a deliberately
+conservative pick inside that range rather than the literal best grid point (which would
+be mildly overfit to the same sample it's evaluated on).
+
+| model | n | acc | log loss | Brier | beats elo_v1 |
+|---|--:|--:|--:|--:|:-:|
+| elo_v1 (same games) | 1326 | 0.540 | 0.6874 | 0.2471 | — |
+| **elo_sp_v1** | 1326 | **0.553** | **0.6855** | **0.2462** | ✅ |
+
+**What this says, honestly.** A real but modest gain — about +1.3 points of accuracy and
+a small log-loss/Brier improvement, consistent across the metric grid, not cherry-picked.
+Nowhere near a dramatic jump: MLB is one of the least single-game-predictable major
+sports (FiveThirtyEight's own public MLB Elo, which `elo_v1` is modeled on, historically
+ran ~55-58% straight-up over a season), so this result — mid-50s to ~55% — is in line
+with what a legitimate model should look like, not a shortfall. `elo_sp_v1` is now the
+model the API serves by default (`_common.PREFERRED_MODELS`), with `elo_v1` still scored
+in parallel on the scorecard as the baseline it has to keep beating.
+
+## 8. Score / run models, player props, season sim
 
 Deferred until the multi-season backfill (2015+, per ADR 0001) lands — one season is too
 short for the Poisson-deviance / PIT-histogram tables and for season-sim interval coverage

@@ -12,7 +12,7 @@ from mlbsim_api.schemas import GameSummary
 from mlbsim_data.models import Game, GamePrediction, PredictionOutcome, Team, is_game_final
 
 # Preference order when a game has predictions from several models.
-PREFERRED_MODELS = ("ensemble_v1", "direct_v1", "elo_v1")
+PREFERRED_MODELS = ("ensemble_v1", "direct_v1", "elo_sp_v1", "elo_v1")
 
 
 def predicted_winner(pred: GamePrediction) -> str:

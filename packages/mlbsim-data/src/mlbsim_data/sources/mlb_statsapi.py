@@ -52,6 +52,30 @@ def schedule(
     return games
 
 
+def player_pitching_stats_range(
+    player_id: int, start_date: str, end_date: str, *, season: int
+) -> dict[str, Any]:
+    """Cumulative pitching stat line for one player over ``[start_date, end_date]``
+    (inclusive) — a single lightweight call, not a box-score ingest, so it's
+    cheap enough to use for a point-in-time "form as of this date" signal
+    without backfilling every game's play-by-play first."""
+    payload = fetch_json(
+        f"{_base()}/v1/people/{player_id}/stats",
+        namespace="statsapi/player_pitching_range",
+        key=f"{player_id}_{start_date}_{end_date}",
+        params={
+            "stats": "byDateRange",
+            "startDate": start_date,
+            "endDate": end_date,
+            "group": "pitching",
+            "season": str(season),
+        },
+        max_age_seconds=None,  # a past date range's totals never change once cached
+    )
+    splits = (payload.get("stats") or [{}])[0].get("splits") or []
+    return cast(dict[str, Any], splits[0]["stat"]) if splits else {}
+
+
 def _game_is_final(obj: dict[str, Any]) -> bool:
     state = (
         obj.get("gameData", {}).get("status", {}).get("abstractGameState")

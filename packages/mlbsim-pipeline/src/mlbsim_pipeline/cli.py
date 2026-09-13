@@ -218,6 +218,38 @@ def elo_predict(
     typer.echo(f"elo_v1: {s.prediction_rows} predictions for {s.games_processed} games")
 
 
+@elo_app.command("predict-sp")
+def elo_predict_sp(
+    start: str = typer.Argument(..., help="Game date YYYY-MM-DD"),
+    end: str | None = typer.Argument(None, help="End date YYYY-MM-DD (default: start)"),
+) -> None:
+    """elo_sp_v1: pre-game picks for [start, end], Elo + starting-pitcher FIP."""
+    from mlbsim_models.pipelines import predict_elo_sp_date
+
+    s = predict_elo_sp_date(start, end)
+    typer.echo(f"elo_sp_v1: {s.prediction_rows} predictions ({s.pitcher_fetches} pitcher fetches)")
+
+
+@elo_app.command("backfill-sp")
+def elo_backfill_sp(
+    season: int = typer.Argument(..., help="Season year, e.g. 2026"),
+    period_bounds: str = typer.Option(
+        "2026-06-01,2026-08-01",
+        "--period-bounds",
+        help="Comma-separated point-in-time snapshot boundaries.",
+    ),
+    season_start: str = typer.Option("2026-03-01", "--season-start"),
+) -> None:
+    """elo_sp_v1 for already-finished games, so the scorecard has its history too."""
+    from mlbsim_models.pipelines import backfill_elo_sp
+
+    bounds = period_bounds.split(",")
+    s = backfill_elo_sp(season, bounds, season_start=season_start)
+    typer.echo(
+        f"elo_sp_v1 backfill: {s.prediction_rows} predictions ({s.pitcher_fetches} pitcher fetches)"
+    )
+
+
 @features_app.command("build")
 def features_build(
     seasons: str | None = typer.Option(None, "--seasons", help="Comma-separated, e.g. 2022,2023."),
