@@ -6,7 +6,6 @@ import { useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
-  { href: "/live", label: "Live" },
   { href: "/games", label: "Games" },
   { href: "/predictions", label: "Scorecard" },
   { href: "/teams", label: "Teams" },
@@ -20,8 +19,9 @@ const STRETCH_WINDOW_MS = 1500;
 
 export function Nav() {
   const pathname = usePathname() ?? "/";
+  // "/" is now the games board's home, so the Games tab covers both.
   const isActive = (href: string) =>
-    href === "/live" ? pathname === "/" || pathname.startsWith("/live") : pathname.startsWith(href);
+    href === "/games" ? pathname === "/" || pathname.startsWith("/games") : pathname.startsWith(href);
 
   // Easter egg: click the logo 7x fast for the "7th inning stretch."
   const clickTimes = useRef<number[]>([]);
@@ -76,14 +76,7 @@ export function Nav() {
                 ) : (
                   <span className="absolute inset-0 -z-10 rounded-md bg-surface-2 opacity-0 transition-opacity duration-300 ease-premium group-hover:opacity-100" />
                 )}
-                {l.label === "Live" ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-danger animate-pulse-dot" />
-                    {l.label}
-                  </span>
-                ) : (
-                  l.label
-                )}
+                {l.label}
               </Link>
             );
           })}

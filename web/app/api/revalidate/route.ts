@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
  *   POST /api/revalidate?secret=…&path=/games&tag=games
  *   POST /api/revalidate   { "secret": "…", "paths": ["/", "/games"], "tags": [] }
  */
-const DEFAULT_PATHS = ["/", "/live", "/games", "/predictions", "/standings", "/playoffs", "/teams"];
+const DEFAULT_PATHS = ["/", "/games", "/predictions", "/standings", "/playoffs", "/teams"];
 
 export async function POST(request: Request) {
   const url = new URL(request.url);

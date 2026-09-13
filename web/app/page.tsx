@@ -1,12 +1,13 @@
-import { LiveBoard } from "@/components/LiveBoard";
+import { GamesBoard } from "@/components/GamesBoard";
 
-// Live board — rendered per request; <AutoRefresh> re-pulls it on a timer.
-export const revalidate = 0;
-// Give the free-tier Render API room to wake from a cold sleep (up to ~50s)
-// without Vercel's own function timeout killing the request first — that
-// race, not a real crash, was the previous "Something went wrong" cause.
-export const maxDuration = 60;
+// Home page — today's games board (see components/GamesBoard.tsx, shared
+// with /games so the two can't drift apart).
+export const revalidate = 120;
 
-export default async function HomePage() {
-  return await LiveBoard();
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string; team?: string; filter?: string }>;
+}) {
+  return await GamesBoard({ searchParams });
 }
