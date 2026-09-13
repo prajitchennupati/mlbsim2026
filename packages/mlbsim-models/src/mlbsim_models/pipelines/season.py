@@ -7,7 +7,7 @@ import time
 from typing import Any
 
 import numpy as np
-from sqlalchemy import case, func, insert, select
+from sqlalchemy import insert, select
 
 from mlbsim_core import get_logger, session_scope
 from mlbsim_data.models import (
@@ -18,8 +18,8 @@ from mlbsim_data.models import (
     SeriesPrediction,
     SimulationRun,
     Team,
-    TeamGameLog,
 )
+from mlbsim_data.standings import team_records
 from mlbsim_engine import ENGINE_VERSION
 from mlbsim_engine.season import SeasonSetup, simulate_season
 
@@ -54,19 +54,10 @@ def build_season_setup(
 
         w2d = np.zeros(30, np.int64)
         l2d = np.zeros(30, np.int64)
-        for tid, won, n in s.execute(
-            select(
-                TeamGameLog.team_id,
-                func.sum(case((TeamGameLog.won.is_(True), 1), else_=0)),
-                func.count(),
-            )
-            .join(Game, Game.game_pk == TeamGameLog.game_pk)
-            .where(TeamGameLog.season == season, Game.game_date < cutoff)
-            .group_by(TeamGameLog.team_id)
-        ):
+        for tid, rec in team_records(s, season, through=cutoff).items():
             if tid in idx:
-                w2d[idx[tid]] = int(won or 0)
-                l2d[idx[tid]] = int(n) - int(won or 0)
+                w2d[idx[tid]] = rec.wins
+                l2d[idx[tid]] = rec.losses
 
         elo = {
             eid: float(rating)

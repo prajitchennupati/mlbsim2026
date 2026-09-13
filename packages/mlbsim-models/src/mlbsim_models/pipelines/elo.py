@@ -26,6 +26,30 @@ MODEL_ID = "elo_v1"
 _REG_SEASON_TYPES = ("R",)
 
 
+def _factors(
+    home_rating: float, away_rating: float, home_field: float, p_home: float
+) -> dict[str, Any]:
+    """Elo isn't a sum-of-features model, so there's exactly one "factor" —
+    still shaped as `top_factors` so the frontend's explanation panel and the
+    /predictions/{id}/explanation endpoint have something to render."""
+    favours = "home" if p_home >= 0.5 else "away"
+    return {
+        "home_rating": round(home_rating, 1),
+        "away_rating": round(away_rating, 1),
+        "home_field": home_field,
+        "top_factors": [
+            {
+                "feature": "elo_rating",
+                "label": f"Elo rating ({round(home_rating)} vs {round(away_rating)}, "
+                f"+{home_field:g} home field)",
+                "logit_contribution": 0.0,
+                "favours": favours,
+                "prob_shift": round((p_home if favours == "home" else 1.0 - p_home) - 0.5, 5),
+            }
+        ],
+    }
+
+
 @dataclass(slots=True)
 class EloBuildSummary:
     model_id: str
@@ -102,11 +126,9 @@ def build_elo(
             "is_live": False,
             "home_win_prob": round(res.home_win_prob, 5),
             "away_win_prob": round(1.0 - res.home_win_prob, 5),
-            "factors": {
-                "home_rating_pre": round(res.home_rating_pre, 1),
-                "away_rating_pre": round(res.away_rating_pre, 1),
-                "home_field": cfg.home_field,
-            },
+            "factors": _factors(
+                res.home_rating_pre, res.away_rating_pre, cfg.home_field, res.home_win_prob
+            ),
         }
         for res in results
     ]
@@ -227,11 +249,7 @@ def predict_elo_date(
                     "is_live": False,
                     "home_win_prob": round(p, 5),
                     "away_win_prob": round(1.0 - p, 5),
-                    "factors": {
-                        "home_rating": round(rh, 1),
-                        "away_rating": round(ra, 1),
-                        "home_field": cfg.home_field,
-                    },
+                    "factors": _factors(rh, ra, cfg.home_field, p),
                 }
             )
 

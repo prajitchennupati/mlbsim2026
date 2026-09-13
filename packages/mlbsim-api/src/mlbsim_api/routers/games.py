@@ -9,9 +9,9 @@ from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from mlbsim_api._common import (
+    build_game_summary,
     latest_prediction,
     outcomes_by_pred_id,
-    predicted_winner,
     team_abbr_map,
     team_by_abbr,
 )
@@ -25,13 +25,7 @@ from mlbsim_api.schemas import (
     PlayerPredictionOut,
     SimulationOut,
 )
-from mlbsim_data.models import (
-    Game,
-    GameSimResultRow,
-    PlayerPrediction,
-    SimulationRun,
-    is_game_final,
-)
+from mlbsim_data.models import Game, GameSimResultRow, PlayerPrediction, SimulationRun
 
 router = APIRouter(prefix="/games", tags=["games"])
 
@@ -64,32 +58,7 @@ def list_games(
     for g in games:
         p = preds[g.game_pk]
         oc = outcomes.get(p.pred_id) if p else None
-        out.append(
-            GameSummary(
-                game_pk=g.game_pk,
-                season=g.season,
-                game_date=g.game_date,
-                start_time_utc=g.scheduled_start_utc,
-                status=g.status,
-                is_final=is_game_final(g.status),
-                home_team_id=g.home_team_id,
-                away_team_id=g.away_team_id,
-                home_abbr=abbr.get(g.home_team_id),
-                away_abbr=abbr.get(g.away_team_id),
-                home_score=g.home_score,
-                away_score=g.away_score,
-                home_win_prob=float(p.home_win_prob) if p else None,
-                away_win_prob=float(p.away_win_prob) if p else None,
-                exp_home_runs=float(p.exp_home_runs) if p and p.exp_home_runs is not None else None,
-                exp_away_runs=float(p.exp_away_runs) if p and p.exp_away_runs is not None else None,
-                model_id=p.model_id if p else None,
-                pred_id=p.pred_id if p else None,
-                predicted_winner=predicted_winner(p) if p else None,
-                actual_winner=oc.actual_winner if oc else None,
-                correct=oc.correct if oc else None,
-                brier=float(oc.brier) if oc and oc.brier is not None else None,
-            )
-        )
+        out.append(build_game_summary(g, abbr, p, oc))
     return out
 
 
@@ -101,33 +70,13 @@ def game_detail(game_pk: int, s: Session = Depends(get_session)) -> GameDetail:
     abbr = team_abbr_map(s)
     p = latest_prediction(s, game_pk)
     oc = outcomes_by_pred_id(s, [p.pred_id]).get(p.pred_id) if p else None
+    base = build_game_summary(g, abbr, p, oc)
     return GameDetail(
-        game_pk=g.game_pk,
-        season=g.season,
-        game_date=g.game_date,
-        start_time_utc=g.scheduled_start_utc,
-        status=g.status,
-        is_final=is_game_final(g.status),
-        home_team_id=g.home_team_id,
-        away_team_id=g.away_team_id,
-        home_abbr=abbr.get(g.home_team_id),
-        away_abbr=abbr.get(g.away_team_id),
-        home_score=g.home_score,
-        away_score=g.away_score,
+        **base.model_dump(),
         park_id=g.park_id,
         scheduled_start_utc=g.scheduled_start_utc,
         home_sp_id=g.home_sp_id,
         away_sp_id=g.away_sp_id,
-        model_id=p.model_id if p else None,
-        pred_id=p.pred_id if p else None,
-        predicted_winner=predicted_winner(p) if p else None,
-        actual_winner=oc.actual_winner if oc else None,
-        correct=oc.correct if oc else None,
-        brier=float(oc.brier) if oc and oc.brier is not None else None,
-        home_win_prob=float(p.home_win_prob) if p else None,
-        away_win_prob=float(p.away_win_prob) if p else None,
-        exp_home_runs=float(p.exp_home_runs) if p and p.exp_home_runs is not None else None,
-        exp_away_runs=float(p.exp_away_runs) if p and p.exp_away_runs is not None else None,
         p_extra_innings=float(p.p_extra_innings) if p and p.p_extra_innings is not None else None,
         p_shutout_home=float(p.p_shutout_home) if p and p.p_shutout_home is not None else None,
         p_shutout_away=float(p.p_shutout_away) if p and p.p_shutout_away is not None else None,

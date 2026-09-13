@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import Any
 
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
-from mlbsim_data.models import GamePrediction, PredictionOutcome, Team
+from mlbsim_api.schemas import GameSummary
+from mlbsim_data.models import Game, GamePrediction, PredictionOutcome, Team, is_game_final
 
 # Preference order when a game has predictions from several models.
 PREFERRED_MODELS = ("ensemble_v1", "direct_v1", "elo_v1")
@@ -17,6 +18,46 @@ PREFERRED_MODELS = ("ensemble_v1", "direct_v1", "elo_v1")
 def predicted_winner(pred: GamePrediction) -> str:
     """The side the model favours ("home" | "away"); ties break to home."""
     return "home" if float(pred.home_win_prob) >= 0.5 else "away"
+
+
+def build_game_summary(
+    g: Game,
+    abbr: Mapping[int, str],
+    pred: GamePrediction | None,
+    outcome: PredictionOutcome | None,
+) -> GameSummary:
+    """The fields every games/teams endpoint returns for one game — factored out
+    so `is_final`, the verdict fields, etc. can't drift between endpoints the
+    way `/teams/{abbr}/schedule` once did (it built its own GameSummary by hand
+    and simply never got them)."""
+    return GameSummary(
+        game_pk=g.game_pk,
+        season=g.season,
+        game_date=g.game_date,
+        start_time_utc=g.scheduled_start_utc,
+        status=g.status,
+        is_final=is_game_final(g.status),
+        home_team_id=g.home_team_id,
+        away_team_id=g.away_team_id,
+        home_abbr=abbr.get(g.home_team_id),
+        away_abbr=abbr.get(g.away_team_id),
+        home_score=g.home_score,
+        away_score=g.away_score,
+        home_win_prob=float(pred.home_win_prob) if pred else None,
+        away_win_prob=float(pred.away_win_prob) if pred else None,
+        exp_home_runs=float(pred.exp_home_runs)
+        if pred and pred.exp_home_runs is not None
+        else None,
+        exp_away_runs=float(pred.exp_away_runs)
+        if pred and pred.exp_away_runs is not None
+        else None,
+        model_id=pred.model_id if pred else None,
+        pred_id=pred.pred_id if pred else None,
+        predicted_winner=predicted_winner(pred) if pred else None,
+        actual_winner=outcome.actual_winner if outcome else None,
+        correct=outcome.correct if outcome else None,
+        brier=float(outcome.brier) if outcome and outcome.brier is not None else None,
+    )
 
 
 def outcomes_by_pred_id(session: Session, pred_ids: Iterable[int]) -> dict[int, PredictionOutcome]:

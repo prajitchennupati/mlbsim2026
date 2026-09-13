@@ -75,11 +75,11 @@ def seeded():
                     "season": _TODAY.year,
                     "game_date": _TODAY,
                     "game_type": "R",
-                    "status": "Scheduled",
+                    "status": "Final",
                     "home_team_id": _HOME,
                     "away_team_id": _AWAY,
-                    "home_score": None,
-                    "away_score": None,
+                    "home_score": 5,
+                    "away_score": 3,
                     "home_sp_id": 5001,
                     "away_sp_id": 5002,
                     "dh_game_num": 1,
@@ -327,10 +327,14 @@ def test_games_list_and_detail(seeded):
     assert body[0]["game_pk"] == _GAME_PK
     assert body[0]["home_win_prob"] == 0.58
     assert body[0]["home_abbr"] == "HOM"
+    assert body[0]["is_final"] is True
+    assert body[0]["predicted_winner"] == "home"
+    assert body[0]["correct"] is True
 
     d = client.get(f"/api/v1/games/{_GAME_PK}").json()
     assert d["away_sp_id"] == 5002
     assert d["factors"]["top_factors"]
+    assert d["is_final"] is True
     assert client.get("/api/v1/games/404040").status_code == 404
 
 
