@@ -30,8 +30,7 @@ export function Nav() {
             ⚾
           </span>
           <span>
-            MLB<span className="text-accent">Playoffs</span>
-            <span className="text-muted">2026</span>
+            Diamond<span className="text-accent">Signal</span>
           </span>
         </Link>
         <div className="scroll-x flex gap-1 text-sm">

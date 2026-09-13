@@ -3,30 +3,30 @@
 @tailwind utilities;
 
 :root {
-  --bg: 248 250 252;
+  --bg: 250 249 247;
   --surface: 255 255 255;
-  --surface-2: 246 248 251;
-  --border: 226 232 240;
-  --fg: 15 23 42;
-  --muted: 100 116 139;
-  --accent: 37 99 235;
-  --home: 21 128 61;
+  --surface-2: 244 243 240;
+  --border: 228 225 219;
+  --fg: 28 25 23;
+  --muted: 87 83 78;
+  --accent: 79 70 229;
+  --home: 5 150 105;
   --away: 194 65 12;
-  --success: 22 163 74;
+  --success: 21 128 61;
   --danger: 220 38 38;
-  --warning: 202 138 4;
+  --warning: 161 98 7;
   color-scheme: light;
 }
 
 .dark {
-  --bg: 8 11 18;
-  --surface: 16 21 32;
-  --surface-2: 21 27 40;
-  --border: 38 48 66;
-  --fg: 226 232 240;
-  --muted: 148 163 184;
-  --accent: 96 165 250;
-  --home: 74 222 128;
+  --bg: 11 10 9;
+  --surface: 20 18 16;
+  --surface-2: 27 24 22;
+  --border: 47 43 39;
+  --fg: 250 249 247;
+  --muted: 173 166 160;
+  --accent: 141 150 251;
+  --home: 52 211 153;
   --away: 251 146 60;
   --success: 74 222 128;
   --danger: 248 113 113;
@@ -36,14 +36,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --bg: 8 11 18;
-    --surface: 16 21 32;
-    --surface-2: 21 27 40;
-    --border: 38 48 66;
-    --fg: 226 232 240;
-    --muted: 148 163 184;
-    --accent: 96 165 250;
-    --home: 74 222 128;
+    --bg: 11 10 9;
+    --surface: 20 18 16;
+    --surface-2: 27 24 22;
+    --border: 47 43 39;
+    --fg: 250 249 247;
+    --muted: 173 166 160;
+    --accent: 141 150 251;
+    --home: 52 211 153;
     --away: 251 146 60;
     --success: 74 222 128;
     --danger: 248 113 113;
@@ -60,9 +60,9 @@ body {
   background: rgb(var(--bg));
   color: rgb(var(--fg));
   background-image:
-    radial-gradient(1200px 600px at 100% -10%, rgb(var(--accent) / 0.07), transparent 60%),
+    radial-gradient(1200px 600px at 100% -10%, rgb(var(--accent) / 0.08), transparent 60%),
     radial-gradient(900px 500px at -10% 0%, rgb(var(--home) / 0.05), transparent 55%),
-    radial-gradient(700px 420px at 50% 120%, rgb(var(--accent) / 0.04), transparent 60%);
+    radial-gradient(700px 420px at 50% 120%, rgb(var(--accent) / 0.05), transparent 60%);
   background-attachment: fixed;
 }
 
@@ -131,4 +131,15 @@ body {
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* --- Easter egg: konami-code home run trot (see EasterEgg.tsx) --- */
+@keyframes egg-trot {
+  0% { transform: translateX(-10vw) translateY(0) rotate(0deg); }
+  50% { transform: translateX(50vw) translateY(-18vh) rotate(180deg); }
+  100% { transform: translateX(110vw) translateY(0) rotate(360deg); }
+}
+@keyframes egg-confetti-fall {
+  from { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  to { transform: translateY(110vh) rotate(720deg); opacity: 0.9; }
 }

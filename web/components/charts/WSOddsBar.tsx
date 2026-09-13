@@ -35,6 +35,7 @@ export function WSOddsBar({ teams, limit = 12 }: { teams: TeamSummary[]; limit?:
           type="category"
           dataKey="abbr"
           width={44}
+          interval={0}
           tick={{ fontSize: 12, fill: "rgb(var(--fg))" }}
           axisLine={false}
           tickLine={false}

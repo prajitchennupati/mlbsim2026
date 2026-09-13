@@ -1,4 +1,6 @@
-# web — MLBPlayoffs2026 frontend
+# web — Diamond Signal frontend
+
+The public-facing name for the mlbplayoffs2026 project's site.
 
 Next.js 15 (App Router) · TypeScript · Tailwind · Recharts. Server Components fetch
 from the FastAPI backend; the live board (`/`, `/live`) renders per-request and a

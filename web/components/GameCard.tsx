@@ -51,7 +51,7 @@ export function GameCard({ g, index = 0 }: { g: GameSummary; index?: number }) {
       </div>
 
       {hp != null ? (
-        <div className={cn("mt-3 transition-opacity duration-500", final && "opacity-40")}>
+        <div className={cn("mt-3 transition-opacity duration-500", final && "opacity-60")}>
           <ProbBar home={hp} away={1 - hp} />
         </div>
       ) : null}
@@ -65,7 +65,7 @@ export function GameCard({ g, index = 0 }: { g: GameSummary; index?: number }) {
           <span />
         )}
         {g.model_id ? (
-          <span className="font-mono opacity-70 transition-opacity duration-300 group-hover:opacity-100">
+          <span className="font-mono transition-colors duration-300 group-hover:text-fg">
             {g.model_id}
           </span>
         ) : null}
@@ -91,6 +91,7 @@ function TeamRow({
   isPick: boolean;
   final: boolean;
 }) {
+  const nameColor = final && !isWinner ? "text-muted" : side === "home" ? "text-home" : "text-away";
   return (
     <div className="flex items-center justify-between">
       <span className="flex items-center gap-2">
@@ -100,13 +101,7 @@ function TeamRow({
             side === "home" ? "bg-home" : "bg-away",
           )}
         />
-        <span
-          className={cn(
-            "font-semibold transition-colors duration-300",
-            final && !isWinner && "text-muted",
-            side === "home" ? "text-home" : "text-away",
-          )}
-        >
+        <span className={cn("font-semibold transition-colors duration-300", nameColor)}>
           {abbr}
         </span>
         {isPick ? (
@@ -116,11 +111,7 @@ function TeamRow({
         ) : null}
       </span>
       <span className="flex items-center gap-3 text-sm">
-        {prob != null ? (
-          <span className={cn("text-muted transition-opacity duration-300", final && "opacity-60")}>
-            {pct(prob)}
-          </span>
-        ) : null}
+        {prob != null ? <span className="text-muted">{pct(prob)}</span> : null}
         {score != null ? (
           <span
             className={cn(

@@ -64,7 +64,7 @@ export function PageHeader({
   return (
     <div className="mb-7 flex animate-fade-in-up flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="bg-gradient-to-br from-fg to-fg/70 bg-clip-text text-[1.75rem] font-bold leading-tight tracking-tight text-transparent">
+        <h1 className="bg-gradient-to-br from-fg to-fg/90 bg-clip-text text-[1.75rem] font-bold leading-tight tracking-tight text-transparent">
           {title}
         </h1>
         {subtitle ? <p className="mt-1.5 text-sm text-muted">{subtitle}</p> : null}
