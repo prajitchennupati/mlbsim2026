@@ -1,0 +1,30 @@
+[project]
+name = "mlbsim-models"
+version = "0.0.0"
+description = "Ratings, event model, direct models, projections, ensemble, explainability"
+requires-python = ">=3.12"
+dependencies = [
+    "mlbsim-core",
+    "mlbsim-data",
+    "mlbsim-features",
+    "mlbsim-engine",
+    "sqlalchemy>=2.0.30",
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "scikit-learn>=1.5",
+    "statsmodels>=0.14",
+    "joblib>=1.4",
+]
+
+[project.optional-dependencies]
+# Optional MLflow sink for model runs; `registry.log_model_run` no-ops without it.
+mlflow = ["mlflow>=2.14"]
+# Rephrase-only NL explanations via the Anthropic API (lazily imported, key-gated).
+llm = ["anthropic>=0.34"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mlbsim_models"]

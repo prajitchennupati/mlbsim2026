@@ -1,0 +1,70 @@
+import Link from "next/link";
+import { apiGet } from "@/lib/api";
+import type { TeamSummary } from "@/lib/types";
+import { num, pct } from "@/lib/format";
+import { PageHeader } from "@/components/ui/primitives";
+
+export const revalidate = 600;
+
+export default async function TeamsPage() {
+  const teams = await apiGet<TeamSummary[]>("/teams").catch(() => [] as TeamSummary[]);
+  const byDiv = new Map<string, TeamSummary[]>();
+  for (const t of teams) {
+    const key = `${t.league ?? "—"} ${t.division ?? ""}`.trim();
+    const list = byDiv.get(key) ?? [];
+    if (!byDiv.has(key)) byDiv.set(key, list);
+    list.push(t);
+  }
+
+  return (
+    <div className="space-y-8">
+      <PageHeader title="Teams" subtitle="Records, ratings, and season simulation odds" />
+      {[...byDiv.entries()].map(([div, rows]) => (
+        <div key={div}>
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">{div}</h2>
+          <div className="overflow-x-auto rounded-xl border border-border">
+            <table className="tabular w-full text-sm">
+              <thead className="bg-surface text-left text-xs uppercase text-muted">
+                <tr>
+                  <th className="px-3 py-2">Team</th>
+                  <th className="px-3 py-2 text-right">W-L</th>
+                  <th className="px-3 py-2 text-right">Elo</th>
+                  <th className="px-3 py-2 text-right">Playoffs</th>
+                  <th className="px-3 py-2 text-right">Division</th>
+                  <th className="px-3 py-2 text-right">WS</th>
+                  <th className="px-3 py-2 text-right">Proj W</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows
+                  .sort((a, b) => (b.p_playoffs ?? 0) - (a.p_playoffs ?? 0))
+                  .map((t) => (
+                    <tr key={t.team_id} className="border-t border-border hover:bg-surface">
+                      <td className="px-3 py-2 font-medium">
+                        <Link href={`/teams/${t.abbr}`} className="hover:text-accent">
+                          {t.abbr} <span className="text-muted">{t.name}</span>
+                        </Link>
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        {t.wins ?? "—"}-{t.losses ?? "—"}
+                      </td>
+                      <td className="px-3 py-2 text-right">{t.elo ? Math.round(t.elo) : "—"}</td>
+                      <td className="px-3 py-2 text-right">{pct(t.p_playoffs)}</td>
+                      <td className="px-3 py-2 text-right">{pct(t.p_division)}</td>
+                      <td className="px-3 py-2 text-right font-semibold text-accent">
+                        {pct(t.p_world_series)}
+                      </td>
+                      <td className="px-3 py-2 text-right">{num(t.exp_wins, 0)}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+      {!teams.length ? (
+        <p className="text-sm text-muted">No teams ingested yet.</p>
+      ) : null}
+    </div>
+  );
+}

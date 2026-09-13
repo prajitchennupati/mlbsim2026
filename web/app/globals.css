@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 248 250 252;
+  --surface: 255 255 255;
+  --surface-2: 246 248 251;
+  --border: 226 232 240;
+  --fg: 15 23 42;
+  --muted: 100 116 139;
+  --accent: 37 99 235;
+  --home: 21 128 61;
+  --away: 194 65 12;
+  --success: 22 163 74;
+  --danger: 220 38 38;
+  --warning: 202 138 4;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: 8 11 18;
+  --surface: 16 21 32;
+  --surface-2: 21 27 40;
+  --border: 38 48 66;
+  --fg: 226 232 240;
+  --muted: 148 163 184;
+  --accent: 96 165 250;
+  --home: 74 222 128;
+  --away: 251 146 60;
+  --success: 74 222 128;
+  --danger: 248 113 113;
+  --warning: 250 204 21;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --bg: 8 11 18;
+    --surface: 16 21 32;
+    --surface-2: 21 27 40;
+    --border: 38 48 66;
+    --fg: 226 232 240;
+    --muted: 148 163 184;
+    --accent: 96 165 250;
+    --home: 74 222 128;
+    --away: 251 146 60;
+    --success: 74 222 128;
+    --danger: 248 113 113;
+    --warning: 250 204 21;
+    color-scheme: dark;
+  }
+}
+
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--fg));
+  background-image:
+    radial-gradient(1200px 600px at 100% -10%, rgb(var(--accent) / 0.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 0%, rgb(var(--accent) / 0.04), transparent 55%);
+  background-attachment: fixed;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* thin, unobtrusive scrollbars for the wide tables */
+.scroll-x {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.scroll-x::-webkit-scrollbar {
+  height: 8px;
+}
+.scroll-x::-webkit-scrollbar-thumb {
+  background: rgb(var(--border));
+  border-radius: 999px;
+}

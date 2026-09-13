@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.uv/
+uv.lock
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Data (never commit raw pulls or DB dumps)
+/data/*
+!/data/.gitkeep
+*.parquet
+*.csv
+!tests/**/*.csv
+!packages/**/fixtures/**/*.csv
+*.sqlite
+*.duckdb
+
+# ML artifacts
+mlruns/
+artifacts/
+*.pkl
+*.joblib
+*.pt
+*.onnx
+
+# Node / Next.js
+node_modules/
+web/.next/
+web/out/
+web/.vercel/
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json

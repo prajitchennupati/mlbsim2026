@@ -1,0 +1,25 @@
+# Render blueprint for the read-only API.
+# Postgres lives on Supabase (set MLBSIM_DATABASE_URL); Redis is optional — the
+# API falls back to an in-process cache when it is unreachable.
+
+services:
+  - type: web
+    name: mlbsim-api
+    runtime: python
+    plan: starter
+    region: oregon
+    buildCommand: pip install uv && uv sync --no-dev --package mlbsim-api
+    startCommand: uv run uvicorn mlbsim_api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: MLBSIM_ENVIRONMENT
+        value: production
+      - key: MLBSIM_LOG_JSON
+        value: "true"
+      - key: MLBSIM_DATABASE_URL
+        sync: false # set in the Render dashboard (Supabase connection string)
+      - key: MLBSIM_REDIS_URL
+        sync: false # optional
+      - key: PYTHON_VERSION
+        value: "3.12"

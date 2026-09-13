@@ -1,0 +1,19 @@
+[project]
+name = "mlbsim-features"
+version = "0.0.0"
+description = "Point-in-time feature engineering for the mlbsim platform"
+requires-python = ">=3.12"
+dependencies = [
+    "mlbsim-core",
+    "mlbsim-data",
+    "sqlalchemy>=2.0.30",
+    "pandas>=2.2",
+    "numpy>=1.26",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mlbsim_features"]

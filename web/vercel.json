@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "installCommand": "npm ci || npm install",
+  "regions": ["iad1"],
+  "git": { "deploymentEnabled": { "main": true } },
+  "headers": [
+    {
+      "source": "/api/revalidate",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    }
+  ]
+}
