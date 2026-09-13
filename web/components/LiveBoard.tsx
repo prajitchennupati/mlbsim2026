@@ -24,7 +24,32 @@ import { WSOddsBar } from "@/components/charts/WSOddsBar";
 
 const LIVE_STATUS = /progress|live|in\s|delayed|warmup/i;
 
+/**
+ * Every fetch below already degrades to null/[] on its own (apiGetOrNull /
+ * apiGetOrDefault) -- but this wraps the whole thing too, so a genuinely
+ * unexpected throw (a bad response shape, a downstream component choking on
+ * odd data, etc.) degrades to an inline "still warming up" card instead of
+ * taking out the whole page via the root error boundary. That boundary is
+ * the wrong tool for "the free-tier API is asleep" -- that's an expected,
+ * recoverable state, not a crash.
+ */
 export async function LiveBoard() {
+  try {
+    return await LiveBoardContent();
+  } catch (e) {
+    console.error("LiveBoard failed", e);
+    return (
+      <div className="animate-fade-in-up py-24 text-center">
+        <h1 className="text-2xl font-bold">Warming up</h1>
+        <p className="mt-2 text-sm text-muted">
+          The free-tier API can take up to a minute to wake from sleep. Refresh in a bit.
+        </p>
+      </div>
+    );
+  }
+}
+
+async function LiveBoardContent() {
   const today = isoDate();
   const [games, summary, graded, playoffs] = await Promise.all([
     apiGetOrDefault<GameSummary[]>(`/games?date=${today}`, [], { revalidate: 0 }),
