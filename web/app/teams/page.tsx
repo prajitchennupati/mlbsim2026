@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { apiGet } from "@/lib/api";
+import { apiGetOrDefault } from "@/lib/api";
 import type { TeamSummary } from "@/lib/types";
 import { num, pct } from "@/lib/format";
 import { PageHeader } from "@/components/ui/primitives";
@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/ui/primitives";
 export const revalidate = 600;
 
 export default async function TeamsPage() {
-  const teams = await apiGet<TeamSummary[]>("/teams").catch(() => [] as TeamSummary[]);
+  const teams = await apiGetOrDefault<TeamSummary[]>("/teams", []);
   const byDiv = new Map<string, TeamSummary[]>();
   for (const t of teams) {
     const key = `${t.league ?? "—"} ${t.division ?? ""}`.trim();

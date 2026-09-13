@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { apiGet, apiGetOrNull } from "@/lib/api";
+import { apiGetOrDefault, apiGetOrNull } from "@/lib/api";
 import type { PredictionHistoryRow, PredictionSummary } from "@/lib/types";
 import { num, pct, shortDate } from "@/lib/format";
 import { Card, CardTitle, Empty, PageHeader, StatTile, Segmented } from "@/components/ui/primitives";
@@ -24,9 +24,7 @@ export default async function PredictionsPage({
   if (view === "pending") histQs.set("resolved", "false");
 
   const [rows, summary] = await Promise.all([
-    apiGet<PredictionHistoryRow[]>(`/predictions/history?${histQs}`).catch(
-      () => [] as PredictionHistoryRow[],
-    ),
+    apiGetOrDefault<PredictionHistoryRow[]>(`/predictions/history?${histQs}`, []),
     apiGetOrNull<PredictionSummary>(
       `/predictions/summary${sp.model ? `?model=${sp.model}` : ""}`,
     ),

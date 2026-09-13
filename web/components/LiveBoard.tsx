@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { apiGet, apiGetOrNull } from "@/lib/api";
+import { apiGetOrDefault, apiGetOrNull } from "@/lib/api";
 import type {
   GameSummary,
   PlayoffsOut,
@@ -25,13 +25,13 @@ const LIVE_STATUS = /progress|live|in\s|delayed|warmup/i;
 export async function LiveBoard() {
   const today = isoDate();
   const [games, summary, graded, playoffs] = await Promise.all([
-    apiGet<GameSummary[]>(`/games?date=${today}`, { revalidate: 0 }).catch(
-      () => [] as GameSummary[],
-    ),
+    apiGetOrDefault<GameSummary[]>(`/games?date=${today}`, [], { revalidate: 0 }),
     apiGetOrNull<PredictionSummary>("/predictions/summary", { revalidate: 0 }),
-    apiGet<PredictionHistoryRow[]>("/predictions/history?resolved=true&limit=12", {
-      revalidate: 0,
-    }).catch(() => [] as PredictionHistoryRow[]),
+    apiGetOrDefault<PredictionHistoryRow[]>(
+      "/predictions/history?resolved=true&limit=12",
+      [],
+      { revalidate: 0 },
+    ),
     apiGetOrNull<PlayoffsOut>("/playoffs"),
   ]);
 

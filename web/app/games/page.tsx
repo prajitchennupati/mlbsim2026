@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { apiGet } from "@/lib/api";
+import { apiGetOrDefault } from "@/lib/api";
 import type { GameSummary } from "@/lib/types";
 import { isoDate } from "@/lib/format";
 import { Empty, PageHeader, Segmented } from "@/components/ui/primitives";
@@ -18,7 +18,7 @@ export default async function GamesPage({
   const qs = new URLSearchParams({ date });
   if (sp.team) qs.set("team", sp.team);
 
-  const all = await apiGet<GameSummary[]>(`/games?${qs}`).catch(() => [] as GameSummary[]);
+  const all = await apiGetOrDefault<GameSummary[]>(`/games?${qs}`, []);
   const games =
     filter === "final"
       ? all.filter((g) => g.is_final)

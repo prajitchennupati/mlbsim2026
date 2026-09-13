@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { apiGet, apiGetOrNull } from "@/lib/api";
+import { apiGetOrNull } from "@/lib/api";
 import type {
   ExplanationOut,
   GameDetail,
@@ -29,7 +29,7 @@ export default async function GamePage({
 
   const [players, innings, sim, explain] = await Promise.all([
     apiGetOrNull<GamePlayers>(`/games/${gamePk}/players`),
-    apiGet<InningTable>(`/games/${gamePk}/innings`).catch(() => null),
+    apiGetOrNull<InningTable>(`/games/${gamePk}/innings`),
     apiGetOrNull<SimulationOut>(`/games/${gamePk}/simulation`),
     game.pred_id
       ? apiGetOrNull<ExplanationOut>(`/predictions/${game.pred_id}/explanation`)

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { apiGet, apiGetOrNull } from "@/lib/api";
+import { apiGetOrDefault, apiGetOrNull } from "@/lib/api";
 import type { GameSummary, TeamSummary } from "@/lib/types";
 import { num, pct, shortDate } from "@/lib/format";
 import { Card, CardTitle, PageHeader, StatTile } from "@/components/ui/primitives";
@@ -11,9 +11,7 @@ export default async function TeamPage({ params }: { params: Promise<{ abbr: str
   const { abbr } = await params;
   const team = await apiGetOrNull<TeamSummary>(`/teams/${abbr}`);
   if (!team) notFound();
-  const schedule = await apiGet<GameSummary[]>(`/teams/${abbr}/schedule`).catch(
-    () => [] as GameSummary[],
-  );
+  const schedule = await apiGetOrDefault<GameSummary[]>(`/teams/${abbr}/schedule`, []);
 
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = schedule.filter((g) => (g.game_date ?? "") >= today).slice(0, 9);

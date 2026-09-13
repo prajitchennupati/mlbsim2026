@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { apiGet } from "@/lib/api";
+import { apiGetOrDefault } from "@/lib/api";
 import type { StandingRow } from "@/lib/types";
 import { PageHeader } from "@/components/ui/primitives";
 
 export const revalidate = 600;
 
 export default async function StandingsPage() {
-  const rows = await apiGet<StandingRow[]>("/standings").catch(() => [] as StandingRow[]);
+  const rows = await apiGetOrDefault<StandingRow[]>("/standings", []);
   const groups = new Map<string, StandingRow[]>();
   for (const r of rows) {
     const key = `${r.league ?? "—"} ${r.division ?? ""}`.trim();

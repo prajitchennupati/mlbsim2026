@@ -53,11 +53,31 @@ export async function apiGetOrNull<T>(path: string, opts?: Opts): Promise<T | nu
   try {
     return await apiGet<T>(path, opts);
   } catch (e) {
-    if (e instanceof ApiError && e.status !== 404) {
-      console.warn(`apiGetOrNull ${path} -> ${e.status} ${e.message}`);
-    } else if (!(e instanceof ApiError)) {
-      console.warn(`apiGetOrNull ${path} -> ${(e as Error).message}`);
-    }
+    warnOnFailure(path, e);
     return null;
+  }
+}
+
+/**
+ * Like apiGetOrNull, but returns `fallback` (typically `[]`) instead of null —
+ * for list endpoints a page wants to render as empty rather than special-case.
+ * Always logs, unlike a bare `.catch(() => [])`, so a misconfigured API_URL
+ * shows up in the deployment's function logs instead of silently rendering an
+ * empty page with no trace of why.
+ */
+export async function apiGetOrDefault<T>(path: string, fallback: T, opts?: Opts): Promise<T> {
+  try {
+    return await apiGet<T>(path, opts);
+  } catch (e) {
+    warnOnFailure(path, e);
+    return fallback;
+  }
+}
+
+function warnOnFailure(path: string, e: unknown): void {
+  if (e instanceof ApiError && e.status !== 404) {
+    console.warn(`API ${path} -> ${e.status} ${e.message}`);
+  } else if (!(e instanceof ApiError)) {
+    console.warn(`API ${path} -> unreachable (${API_BASE}): ${(e as Error).message}`);
   }
 }

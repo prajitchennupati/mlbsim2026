@@ -1,4 +1,4 @@
-import { apiGet, apiGetOrNull } from "@/lib/api";
+import { apiGetOrDefault, apiGetOrNull } from "@/lib/api";
 import type { EvalOut, ModelOut } from "@/lib/types";
 import { Card, CardTitle, PageHeader } from "@/components/ui/primitives";
 import { CalibrationPlot } from "@/components/charts/CalibrationPlot";
@@ -6,7 +6,7 @@ import { CalibrationPlot } from "@/components/charts/CalibrationPlot";
 export const revalidate = 900;
 
 export default async function ModelPage() {
-  const models = await apiGet<ModelOut[]>("/models").catch(() => [] as ModelOut[]);
+  const models = await apiGetOrDefault<ModelOut[]>("/models", []);
   const winModel =
     models.find((m) => m.model_id === "ensemble_v1") ??
     models.find((m) => m.model_id === "direct_v1") ??
