@@ -37,9 +37,8 @@ from mlbsim_data.models import (
     GameProbable,
     ModelVersion,
 )
-from mlbsim_data.sources.mlb_statsapi import player_pitching_stats_range
 from mlbsim_models.ratings.elo import EloConfig, expected_home_win
-from mlbsim_models.ratings.pitcher import PitcherLine, rating_adjustment
+from mlbsim_models.ratings.pitcher import PitcherLine, fetch_pitcher_line, rating_adjustment
 
 _log = get_logger(__name__)
 
@@ -52,27 +51,6 @@ _REG_SEASON_TYPES = ("R",)
 class EloSpSummary:
     prediction_rows: int
     pitcher_fetches: int
-
-
-def _ip_to_outs(ip: str | None) -> int:
-    if not ip:
-        return 0
-    whole, _, frac = ip.partition(".")
-    return int(whole or 0) * 3 + int(frac or 0)
-
-
-def _fetch_line(pitcher_id: int, season: int, season_start: str, cutoff: str) -> PitcherLine | None:
-    stat = player_pitching_stats_range(pitcher_id, season_start, cutoff, season=season)
-    if not stat:
-        return None
-    return PitcherLine(
-        outs=_ip_to_outs(stat.get("inningsPitched")),
-        home_runs=int(stat.get("homeRuns", 0)),
-        walks=int(stat.get("baseOnBalls", 0)),
-        hit_by_pitch=int(stat.get("hitBatsmen", 0)),
-        strikeouts=int(stat.get("strikeOuts", 0)),
-        batters_faced=int(stat.get("battersFaced", 0)),
-    )
 
 
 def _ensure_registered(now: dt.datetime) -> None:
@@ -99,7 +77,9 @@ def _ensure_registered(now: dt.datetime) -> None:
         )
 
 
-def _team_ratings_before(team_ids: set[int], before: dt.date) -> dict[int, float]:
+def team_ratings_before(team_ids: set[int], before: dt.date) -> dict[int, float]:
+    """Each team's most recent Elo rating strictly before ``before``. Public
+    (not module-private) because ml_stack.py's feature builder reuses it too."""
     with session_scope() as s:
         rows = s.execute(
             select(EloRating.entity_id, EloRating.rating)
@@ -159,7 +139,7 @@ def predict_elo_sp_date(
         probables = {(r.game_pk, r.team_id): r.probable_pitcher_id for r in probable_rows}
 
     team_ids = {g.home_team_id for g in games} | {g.away_team_id for g in games}
-    ratings = _team_ratings_before(team_ids, start_d)
+    ratings = team_ratings_before(team_ids, start_d)
     season = games[0].season
     cutoff = (start_d - dt.timedelta(days=1)).isoformat()
     season_start = f"{season}-03-01"
@@ -172,7 +152,7 @@ def predict_elo_sp_date(
         if pid is None:
             return None
         if pid not in line_cache:
-            line_cache[pid] = _fetch_line(pid, season, season_start, cutoff)
+            line_cache[pid] = fetch_pitcher_line(pid, season, season_start, cutoff)
             fetches += 1
         return line_cache[pid]
 
@@ -275,14 +255,14 @@ def backfill_elo_sp(
         if key not in line_cache:
             boundary = dt.date.fromisoformat(period_bounds[period - 1])
             cutoff = (boundary - dt.timedelta(days=1)).isoformat()
-            line_cache[key] = _fetch_line(pid, season, season_start, cutoff)
+            line_cache[key] = fetch_pitcher_line(pid, season, season_start, cutoff)
             fetches += 1
         return line_cache[key]
 
     rows = []
     for g in games:
         period = period_of(g.game_date)
-        ratings = _team_ratings_before({g.home_team_id, g.away_team_id}, g.game_date)
+        ratings = team_ratings_before({g.home_team_id, g.away_team_id}, g.game_date)
         rh = ratings.get(g.home_team_id, 1500.0)
         ra = ratings.get(g.away_team_id, 1500.0)
         home_adj = rating_adjustment(

@@ -21,6 +21,10 @@ dependencies = [
 mlflow = ["mlflow>=2.14"]
 # Rephrase-only NL explanations via the Anthropic API (lazily imported, key-gated).
 llm = ["anthropic>=0.34"]
+# Real SHAP (shap.TreeExplainer) for gbm_v1. Lazily imported and run offline as
+# part of training/prediction, not by the API at request time -- so a deployed
+# API never needs this heavy dependency installed.
+shap = ["shap>=0.46"]
 
 [build-system]
 requires = ["hatchling"]

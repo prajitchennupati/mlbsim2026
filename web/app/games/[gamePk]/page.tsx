@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { apiGetOrNull } from "@/lib/api";
 import type {
   ExplanationOut,
@@ -228,7 +229,11 @@ function BatterTable({ rows }: { rows: GamePlayers["batters"] }) {
         <tbody>
           {rows.map((r) => (
             <tr key={r.player_id} className="border-t border-border transition-colors duration-200 hover:bg-surface-2">
-              <td className="py-1.5">#{r.player_id}</td>
+              <td className="py-1.5">
+                <Link href={`/players/${r.player_id}`} className="transition-colors duration-200 hover:text-accent">
+                  #{r.player_id}
+                </Link>
+              </td>
               <td className="px-2 py-1.5 text-right">{num(r.proj.pa, 1)}</td>
               <td className="px-2 py-1.5 text-right">{num(r.proj.h, 2)}</td>
               <td className="px-2 py-1.5 text-right">{num(r.proj.hr, 2)}</td>
@@ -259,7 +264,11 @@ function PitcherTable({ rows }: { rows: GamePlayers["pitchers"] }) {
         <tbody>
           {rows.map((r) => (
             <tr key={r.player_id} className="border-t border-border transition-colors duration-200 hover:bg-surface-2">
-              <td className="py-1.5">#{r.player_id}</td>
+              <td className="py-1.5">
+                <Link href={`/players/${r.player_id}`} className="transition-colors duration-200 hover:text-accent">
+                  #{r.player_id}
+                </Link>
+              </td>
               <td className="px-2 py-1.5 text-right">{num(r.proj.mean_ip, 1)}</td>
               <td className="px-2 py-1.5 text-right">{num(r.proj.mean_k, 1)}</td>
               <td className="px-2 py-1.5 text-right">{pct(r.prob.p_6plus_k)}</td>

@@ -25,6 +25,7 @@ transform_app = typer.Typer(help="Rebuild derived aggregates from warehouse fact
 features_app = typer.Typer(help="Point-in-time feature store")
 elo_app = typer.Typer(help="Elo team ratings baseline")
 ensemble_app = typer.Typer(help="Stacked + calibrated ensemble")
+ml_app = typer.Typer(help="GBM / neural-net / ensemble on Game-derived features")
 flow_app = typer.Typer(help="Orchestration flows (daily / live / status)")
 query_app = typer.Typer(help="Inspect ingested data")
 app.add_typer(db_app, name="db")
@@ -33,6 +34,7 @@ app.add_typer(transform_app, name="transform")
 app.add_typer(features_app, name="features")
 app.add_typer(elo_app, name="elo")
 app.add_typer(ensemble_app, name="ensemble")
+app.add_typer(ml_app, name="ml")
 app.add_typer(flow_app, name="flow")
 app.add_typer(query_app, name="query")
 
@@ -248,6 +250,40 @@ def elo_backfill_sp(
     typer.echo(
         f"elo_sp_v1 backfill: {s.prediction_rows} predictions ({s.pitcher_fetches} pitcher fetches)"
     )
+
+
+@ml_app.command("train")
+def ml_train(
+    season: int = typer.Argument(..., help="Season year, e.g. 2026"),
+) -> None:
+    """Train gbm_v1 + mlp_v1 + ensemble_v1 (chronological split, honest eval)."""
+    from mlbsim_models.pipelines.ml_stack import train_ml_stack
+
+    s = train_ml_stack(season)
+    typer.echo(f"train={s.n_train} stack={s.n_stack} eval={s.n_eval}")
+    for label, m in (
+        ("gbm_v1", s.gbm),
+        ("mlp_v1", s.mlp),
+        ("ensemble_v1", s.ensemble),
+        ("elo_sp_v1 (baseline)", s.elo_sp_baseline),
+    ):
+        typer.echo(
+            f"  {label:22s} acc={m['accuracy']:.4f}  "
+            f"brier={m['brier']:.5f}  log_loss={m['log_loss']:.5f}"
+        )
+
+
+@ml_app.command("predict")
+def ml_predict(
+    season: int = typer.Argument(..., help="Season year, e.g. 2026"),
+    start: str = typer.Argument(..., help="Game date YYYY-MM-DD"),
+    end: str | None = typer.Argument(None, help="End date YYYY-MM-DD (default: start)"),
+) -> None:
+    """gbm_v1/mlp_v1/ensemble_v1 picks for [start, end] (run `ml train` first)."""
+    from mlbsim_models.pipelines.ml_stack import predict_ml_stack_date
+
+    s = predict_ml_stack_date(season, start, end)
+    typer.echo(f"predicted {s.gbm_rows} games with gbm_v1/mlp_v1/ensemble_v1")
 
 
 @features_app.command("build")

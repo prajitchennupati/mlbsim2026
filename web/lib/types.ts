@@ -211,6 +211,37 @@ export interface SeriesRow {
   game_count_dist: Record<string, number>;
 }
 
+export interface PlayerSeasonLine {
+  season: number;
+  group: "batting" | "pitching" | string;
+  split: string;
+  games: number;
+  through_date?: string | null;
+  stats: Record<string, number>;
+}
+
+export interface PlayerPredictionHistoryRow {
+  pred_id: number;
+  game_pk: number;
+  game_date?: string | null;
+  model_id: string;
+  role: "bat" | "pitch";
+  created_at: string;
+  proj: Record<string, number>;
+  prob: Record<string, number>;
+}
+
+export interface PlayerCard {
+  player_id: number;
+  full_name?: string | null;
+  bats?: string | null;
+  throws?: string | null;
+  primary_pos?: string | null;
+  birth_date?: string | null;
+  season_lines: PlayerSeasonLine[];
+  recent_predictions: PlayerPredictionHistoryRow[];
+}
+
 export interface PlayoffsOut {
   sim_run_id?: number | null;
   season?: number | null;

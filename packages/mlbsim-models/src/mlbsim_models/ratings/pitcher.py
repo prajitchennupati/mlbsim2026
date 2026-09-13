@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from mlbsim_data.sources.mlb_statsapi import player_pitching_stats_range
+
 FIP_CONSTANT = 3.10  # matches mlbsim_features.build.pitcher_form
 LEAGUE_AVG_FIP = 4.20  # fixed reference point, not fit to any one sample
 MIN_BATTERS_FACED = 30  # below this a cumulative FIP is too noisy to trust
@@ -54,3 +56,31 @@ def rating_adjustment(
     delta_runs = league_avg_fip - fip(line)
     points = delta_runs * points_per_fip_run
     return max(-MAX_ADJUSTMENT, min(MAX_ADJUSTMENT, points))
+
+
+def _ip_to_outs(ip: str | None) -> int:
+    """MLB's innings-pitched string ("34.1") -> outs (34*3 + 1 = 103)."""
+    if not ip:
+        return 0
+    whole, _, frac = ip.partition(".")
+    return int(whole or 0) * 3 + int(frac or 0)
+
+
+def fetch_pitcher_line(
+    pitcher_id: int, season: int, season_start: str, cutoff: str
+) -> PitcherLine | None:
+    """A starter's cumulative line over [season_start, cutoff] — a single cheap
+    Stats API call (MLB aggregates it server-side), not a box-score ingest.
+    Shared by elo_sp and the GBM/MLP feature builder so both use the exact
+    same point-in-time pitcher signal."""
+    stat = player_pitching_stats_range(pitcher_id, season_start, cutoff, season=season)
+    if not stat:
+        return None
+    return PitcherLine(
+        outs=_ip_to_outs(stat.get("inningsPitched")),
+        home_runs=int(stat.get("homeRuns", 0)),
+        walks=int(stat.get("baseOnBalls", 0)),
+        hit_by_pitch=int(stat.get("hitBatsmen", 0)),
+        strikeouts=int(stat.get("strikeOuts", 0)),
+        batters_faced=int(stat.get("battersFaced", 0)),
+    )

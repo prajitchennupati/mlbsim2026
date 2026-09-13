@@ -76,6 +76,20 @@ def player_pitching_stats_range(
     return cast(dict[str, Any], splits[0]["stat"]) if splits else {}
 
 
+def player_year_by_year_pitching(player_id: int) -> list[dict[str, Any]]:
+    """A pitcher's full multi-year season-by-season history in one call --
+    what a Marcel-style projection needs, no per-game logs required."""
+    payload = fetch_json(
+        f"{_base()}/v1/people/{player_id}/stats",
+        namespace="statsapi/player_pitching_ybyy",
+        key=str(player_id),
+        params={"stats": "yearByYear", "group": "pitching"},
+        max_age_seconds=3600.0,  # this season's row keeps changing; refresh hourly
+    )
+    splits = (payload.get("stats") or [{}])[0].get("splits") or []
+    return [cast(dict[str, Any], sp) for sp in splits]
+
+
 def _game_is_final(obj: dict[str, Any]) -> bool:
     state = (
         obj.get("gameData", {}).get("status", {}).get("abstractGameState")
